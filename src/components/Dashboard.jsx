@@ -21,21 +21,24 @@ function KPICard({ title, value, sub, icon: Icon, color = 'violet', trend }) {
     blue:   'text-blue-400   bg-blue-500/10   border-blue-500/20',
   };
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex items-start gap-4 hover:border-slate-600 transition-all">
-      <div className={`w-11 h-11 rounded-xl border flex items-center justify-center shrink-0 ${colorMap[color]}`}>
-        <Icon size={20} />
+    <div className="bg-slate-800 border border-slate-700 rounded-2xl p-3 sm:p-5 flex items-start gap-2.5 sm:gap-4 hover:border-slate-600 transition-all">
+      <div className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl border flex items-center justify-center shrink-0 ${colorMap[color]}`}>
+        <Icon size={16} className="sm:hidden" />
+        <Icon size={20} className="hidden sm:block" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-slate-400 text-xs font-medium uppercase tracking-wide">{title}</p>
-        <p className="text-white text-2xl font-bold mt-1 truncate">{value}</p>
-        {sub && <p className="text-slate-500 text-xs mt-0.5">{sub}</p>}
+        <div className="flex items-start justify-between gap-1">
+          <p className="text-slate-400 text-[10px] sm:text-xs font-medium uppercase tracking-wide leading-tight">{title}</p>
+          {trend != null && (
+            <span className={`text-[10px] font-semibold flex items-center shrink-0 ${trend >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <ArrowUpRight size={11} className={trend < 0 ? 'rotate-180' : ''} />
+              {Math.abs(trend)}%
+            </span>
+          )}
+        </div>
+        <p className="text-white text-base sm:text-2xl font-bold mt-0.5 leading-tight break-all">{value}</p>
+        {sub && <p className="text-slate-500 text-[10px] sm:text-xs mt-0.5 line-clamp-2">{sub}</p>}
       </div>
-      {trend != null && (
-        <span className={`text-xs font-semibold flex items-center gap-0.5 ${trend >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-          <ArrowUpRight size={13} className={trend < 0 ? 'rotate-180' : ''} />
-          {Math.abs(trend)}%
-        </span>
-      )}
     </div>
   );
 }
@@ -119,10 +122,10 @@ export default function Dashboard() {
           <h2 className="text-white text-lg sm:text-xl font-bold">Dashboard</h2>
           <p className="text-slate-400 text-xs sm:text-sm truncate">{new Date().toLocaleDateString('es-PE', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}</p>
         </div>
-        <div className={`px-4 py-2 rounded-xl text-sm font-medium border ${
+        <div className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium border shrink-0 ${
           currentCashRegister ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30'
         }`}>
-          {currentCashRegister ? '● Caja abierta' : '● Caja cerrada'}
+          {currentCashRegister ? '● Abierta' : '● Cerrada'}
         </div>
       </div>
 

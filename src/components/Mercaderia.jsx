@@ -66,7 +66,7 @@ function ProductCombobox({ value, products, onChange }) {
       {open && suggestions.length > 0 && (
         <div
           ref={listRef}
-          className="absolute z-30 top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl overflow-hidden max-h-52 overflow-y-auto"
+          className="absolute z-50 top-full left-0 right-0 mt-1 bg-slate-800 border border-slate-600 rounded-xl shadow-2xl overflow-hidden max-h-[45vh] overflow-y-auto"
         >
           {suggestions.map(p => (
             <button
@@ -104,33 +104,44 @@ function ProductCombobox({ value, products, onChange }) {
 // ── Fila de producto en el formulario ────────────────────────────────────────
 function ItemRow({ item, products, onChange, onRemove, showCost = true }) {
   const prod = products.find(p => p.id === item.productId);
+  const total = showCost ? item.qty * item.cost : (prod ? item.qty * prod.cost : 0);
   return (
-    <div className="flex gap-2 items-center bg-slate-900 rounded-xl p-2.5">
+    <div className="bg-slate-900 rounded-xl p-2.5 space-y-2">
+      {/* Fila 1: buscador de producto (ancho completo) */}
       <ProductCombobox
         value={item.productId}
         products={products}
         onChange={onChange}
       />
-      <input
-        type="number" min="1" placeholder="Cant"
-        value={item.qty}
-        onChange={e => onChange('qty', parseInt(e.target.value)||1)}
-        className="w-16 bg-slate-800 border border-slate-700 text-white rounded-lg px-2 py-2 text-xs text-center focus:outline-none"
-      />
-      {showCost && (
-        <input
-          type="number" min="0" step="0.01" placeholder="Costo"
-          value={item.cost}
-          onChange={e => onChange('cost', parseFloat(e.target.value)||0)}
-          className="w-24 bg-slate-800 border border-slate-700 text-white rounded-lg px-2 py-2 text-xs text-center focus:outline-none"
-        />
-      )}
-      <span className="text-slate-400 text-xs w-20 text-right shrink-0">
-        {showCost ? fmt(item.qty * item.cost) : (prod ? fmt(item.qty * prod.cost) : '—')}
-      </span>
-      <button type="button" onClick={onRemove} className="text-slate-600 hover:text-red-400 ml-1 shrink-0">
-        <Trash2 size={14}/>
-      </button>
+      {/* Fila 2: cantidad, costo, total, eliminar */}
+      <div className="flex gap-2 items-center">
+        <div className="flex-1 flex items-center gap-1.5">
+          <label className="text-slate-500 text-[10px] shrink-0">Cant</label>
+          <input
+            type="number" min="1"
+            value={item.qty}
+            onChange={e => onChange('qty', parseInt(e.target.value)||1)}
+            className="flex-1 min-w-0 bg-slate-800 border border-slate-700 text-white rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:border-violet-500"
+          />
+        </div>
+        {showCost && (
+          <div className="flex-1 flex items-center gap-1.5">
+            <label className="text-slate-500 text-[10px] shrink-0">S/</label>
+            <input
+              type="number" min="0" step="0.01" placeholder="0.00"
+              value={item.cost}
+              onChange={e => onChange('cost', parseFloat(e.target.value)||0)}
+              className="flex-1 min-w-0 bg-slate-800 border border-slate-700 text-white rounded-lg px-2 py-2 text-sm text-center focus:outline-none focus:border-violet-500"
+            />
+          </div>
+        )}
+        <span className={`text-sm font-semibold shrink-0 ${total > 0 ? 'text-violet-400' : 'text-slate-600'}`}>
+          {fmt(total)}
+        </span>
+        <button type="button" onClick={onRemove} className="text-slate-600 hover:text-red-400 p-1 shrink-0">
+          <Trash2 size={16}/>
+        </button>
+      </div>
     </div>
   );
 }
@@ -178,11 +189,9 @@ function GoodsInForm({ products, onSubmit, onCancel, currentUser }) {
       </div>
 
       <div className="space-y-2">
-        <div className="flex gap-2 text-xs text-slate-500 px-2.5">
-          <span className="flex-1">Producto</span>
-          <span className="w-16 text-center">Cant</span>
-          <span className="w-24 text-center">P. Costo (S/)</span>
-          <span className="w-20 text-right">Total</span>
+        <div className="hidden sm:flex gap-2 text-xs text-slate-500 px-2.5">
+          <span className="flex-1">Producto · cantidad · costo</span>
+          <span className="w-16 text-right">Total</span>
           <span className="w-5"/>
         </div>
         {items.map((item, i) => (
@@ -244,12 +253,6 @@ function GoodsOutForm({ products, onSubmit, onCancel, currentUser }) {
       </div>
 
       <div className="space-y-2">
-        <div className="flex gap-2 text-xs text-slate-500 px-2.5">
-          <span className="flex-1">Producto</span>
-          <span className="w-16 text-center">Cant</span>
-          <span className="w-20 text-right">Valor</span>
-          <span className="w-5"/>
-        </div>
         {items.map((item, i) => (
           <ItemRow key={i} item={item} products={products} showCost={false}
             onChange={(f,v) => updateItem(i,f,v)} onRemove={() => removeItem(i)} />
