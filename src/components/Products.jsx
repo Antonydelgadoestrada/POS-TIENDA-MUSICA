@@ -110,8 +110,11 @@ function TypeSelector({ onSelect, onClose }) {
 
 // ── Modal de producto ─────────────────────────────────────────────────────────
 function ProductModal({ product, selectedType, categories, onClose, onSave }) {
+  const { dispatch } = useApp();
   const resolvedType = product?.type || selectedType || 'PRODUCTO_CON_CODIGO';
   const cfg = getTypeConfig(resolvedType);
+  const [addingCat, setAddingCat]   = useState(false);
+  const [newCatInput, setNewCatInput] = useState('');
 
   const emptyForm = {
     sku: '', name: '', type: resolvedType,
@@ -128,6 +131,15 @@ function ProductModal({ product, selectedType, categories, onClose, onSave }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const margin = form.cost > 0 ? (((form.price - form.cost) / form.cost) * 100).toFixed(1) : 0;
   const handleSubmit = (e) => { e.preventDefault(); onSave(form); };
+
+  const handleAddCategory = () => {
+    const cat = newCatInput.trim();
+    if (!cat || categories.includes(cat)) { setAddingCat(false); setNewCatInput(''); return; }
+    dispatch({ type: 'UPDATE_CONFIG', payload: { categories: [...categories, cat] } });
+    set('category', cat);
+    setAddingCat(false);
+    setNewCatInput('');
+  };
 
   const numericFields = [
     ['Precio de costo (S/)', 'cost'], ['Precio de venta (S/)', 'price'],
@@ -180,10 +192,31 @@ function ProductModal({ product, selectedType, categories, onClose, onSave }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1">Categoría</label>
-              <select value={form.category} onChange={e => set('category', e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-violet-500">
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              {addingCat ? (
+                <div className="flex gap-1.5">
+                  <input
+                    autoFocus
+                    value={newCatInput}
+                    onChange={e => setNewCatInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategory(); } if (e.key === 'Escape') { setAddingCat(false); setNewCatInput(''); } }}
+                    placeholder="Nueva categoría..."
+                    className="flex-1 bg-slate-900 border border-violet-500 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none"
+                  />
+                  <button type="button" onClick={handleAddCategory} className="px-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white"><Check size={14}/></button>
+                  <button type="button" onClick={() => { setAddingCat(false); setNewCatInput(''); }} className="px-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-300"><X size={14}/></button>
+                </div>
+              ) : (
+                <div className="flex gap-1.5">
+                  <select value={form.category} onChange={e => set('category', e.target.value)}
+                    className="flex-1 bg-slate-900 border border-slate-700 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-violet-500">
+                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <button type="button" onClick={() => setAddingCat(true)}
+                    className="px-2.5 rounded-xl bg-slate-700 hover:bg-violet-600 text-slate-400 hover:text-white transition-all" title="Nueva categoría">
+                    <Plus size={14}/>
+                  </button>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1">

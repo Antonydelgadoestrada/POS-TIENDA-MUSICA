@@ -1,6 +1,8 @@
 import React from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { MODULE_PERMISSION } from './data/permissions';
+import { DB_ENABLED } from './lib/supabase';
+import { Music } from 'lucide-react';
 import Login from './components/Login';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
@@ -30,8 +32,20 @@ const MODULE_MAP = {
 };
 
 function AppContent() {
-  const { state, hasPermission } = useApp();
+  const { state, hasPermission, dbLoading } = useApp();
   const { currentUser, activeModule } = state;
+
+  if (dbLoading && DB_ENABLED) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 rounded-2xl bg-violet-600 flex items-center justify-center mb-2">
+          <Music size={24} className="text-white" />
+        </div>
+        <div className="w-10 h-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-slate-400 text-sm">Cargando datos...</p>
+      </div>
+    );
+  }
 
   if (!currentUser) return <Login />;
 
