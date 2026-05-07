@@ -3,8 +3,72 @@ import { useApp } from '../context/AppContext';
 import { fmt } from '../lib/format';
 import {
   Search, Plus, Minus, Trash2, ShoppingCart, CheckCircle,
-  X, Printer, Zap, CreditCard,
+  X, Printer, Zap, CreditCard, Pencil, RefreshCw, ShoppingBag,
 } from 'lucide-react';
+
+// ── Modal para editar precio de un producto ───────────────────────────────────
+function PriceEditModal({ product, onClose, onApply }) {
+  const { dispatch, toast } = useApp();
+  const [newPrice, setNewPrice] = useState(product.price);
+
+  const handlePermanent = () => {
+    if (!newPrice || newPrice <= 0) return;
+    dispatch({ type: 'UPDATE_PRODUCT', payload: { ...product, price: parseFloat(newPrice) } });
+    toast(`Precio de ${product.name} actualizado a ${fmt(newPrice)}`, 'success');
+    onApply(parseFloat(newPrice));
+    onClose();
+  };
+
+  const handleOnce = () => {
+    if (!newPrice || newPrice <= 0) return;
+    onApply(parseFloat(newPrice));
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 animate-fade-in sm:p-4">
+      <div className="bg-slate-800 border border-slate-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm animate-slide-up">
+        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+          <div>
+            <h3 className="text-white font-bold flex items-center gap-2">
+              <Pencil size={16} className="text-violet-400"/> Editar precio
+            </h3>
+            <p className="text-slate-400 text-xs mt-0.5 truncate max-w-[220px]">{product.name}</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={18}/></button>
+        </div>
+        <div className="p-4 space-y-4">
+          <div>
+            <label className="block text-xs text-slate-400 mb-1">
+              Precio actual: <span className="text-slate-300 font-semibold">{fmt(product.price)}</span>
+            </label>
+            <input
+              type="number" min="0.01" step="0.01"
+              value={newPrice}
+              onChange={e => setNewPrice(e.target.value)}
+              autoFocus
+              className="w-full bg-slate-900 border border-violet-500 text-white rounded-xl px-4 py-3 text-lg font-bold focus:outline-none"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={handleOnce}
+              className="flex flex-col items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white py-3 px-2 rounded-xl transition-all">
+              <ShoppingBag size={18} className="text-violet-400"/>
+              <span className="text-xs font-semibold text-center leading-tight">Solo esta venta</span>
+              <span className="text-[10px] text-slate-500 text-center">No modifica el producto</span>
+            </button>
+            <button onClick={handlePermanent}
+              className="flex flex-col items-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white py-3 px-2 rounded-xl transition-all">
+              <RefreshCw size={18}/>
+              <span className="text-xs font-semibold text-center leading-tight">Actualizar precio</span>
+              <span className="text-[10px] text-violet-300 text-center">Modifica el producto</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Modal de pago completo ────────────────────────────────────────────────────
 function PaymentModal({ subtotal, taxAmt, total, companyConfig, onConfirm, onClose }) {
@@ -150,7 +214,7 @@ function PaymentModal({ subtotal, taxAmt, total, companyConfig, onConfirm, onClo
 
 // ── Componente principal POS ──────────────────────────────────────────────────
 export default function POS() {
-  const { state, dispatch, toast } = useApp();
+  const { state, dispatch, toast, hasPermission } = useApp();
   const { products, currentCashRegister, currentUser, companyConfig } = state;
 
   const [search, setSearch]         = useState('');
@@ -159,7 +223,10 @@ export default function POS() {
   const [mobileTab, setMobileTab]   = useState('products');
   const [payModal, setPayModal]     = useState(false);
   const [receiptModal, setReceiptModal] = useState(null);
+  const [priceEditProduct, setPriceEditProduct] = useState(null);
   const receiptRef = useRef(null);
+
+  const canEditPrice = hasPermission('manage_products');
 
   const activeProducts = useMemo(() => products.filter(p => p.active && p.stock > 0), [products]);
   const filtered = useMemo(() => activeProducts.filter(p => {
@@ -349,20 +416,30 @@ export default function POS() {
           <div className="flex-1 overflow-y-auto">
             <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
               {filtered.map(p => (
-                <button key={p.id} onClick={() => addToCart(p)}
-                  className="bg-slate-800 border border-slate-700 hover:border-violet-500 rounded-xl p-3 text-left transition-all group hover:shadow-lg hover:shadow-violet-900/20">
-                  <div className="w-full h-14 bg-slate-700 rounded-lg flex items-center justify-center mb-2 group-hover:bg-violet-600/10 transition-colors">
-                    <span className="text-xl font-bold text-slate-500 group-hover:text-violet-400">{p.name.charAt(0)}</span>
-                  </div>
-                  <p className="text-white text-xs font-semibold leading-tight truncate">{p.name}</p>
-                  <p className="text-slate-500 text-xs truncate">{p.brand}</p>
-                  <div className="flex items-center justify-between mt-1.5">
-                    <span className="text-violet-400 font-bold text-sm">{fmt(p.price)}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${p.stock <= p.stockMin ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-700 text-slate-400'}`}>
-                      {p.stock} uds
-                    </span>
-                  </div>
-                </button>
+                <div key={p.id} className="relative group">
+                  <button onClick={() => addToCart(p)}
+                    className="w-full bg-slate-800 border border-slate-700 hover:border-violet-500 rounded-xl p-3 text-left transition-all hover:shadow-lg hover:shadow-violet-900/20">
+                    <div className="w-full h-14 bg-slate-700 rounded-lg flex items-center justify-center mb-2 group-hover:bg-violet-600/10 transition-colors">
+                      <span className="text-xl font-bold text-slate-500 group-hover:text-violet-400">{p.name.charAt(0)}</span>
+                    </div>
+                    <p className="text-white text-xs font-semibold leading-tight truncate">{p.name}</p>
+                    <p className="text-slate-500 text-xs truncate">{p.brand}</p>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className="text-violet-400 font-bold text-sm">{fmt(p.price)}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${p.stock <= p.stockMin ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-700 text-slate-400'}`}>
+                        {p.stock} uds
+                      </span>
+                    </div>
+                  </button>
+                  {canEditPrice && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setPriceEditProduct(p); }}
+                      className="absolute top-2 right-2 w-6 h-6 bg-slate-900/80 hover:bg-violet-600 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                      title="Editar precio">
+                      <Pencil size={11} className="text-slate-400 hover:text-white"/>
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
             {filtered.length === 0 && <div className="text-center py-16 text-slate-500">Sin productos</div>}
@@ -407,17 +484,27 @@ export default function POS() {
             </div>
             <div className="grid grid-cols-2 gap-2.5 pb-24">
               {filtered.map(p => (
-                <button key={p.id} onClick={() => addToCart(p)}
-                  className="bg-slate-800 border border-slate-700 active:border-violet-500 rounded-xl p-3 text-left transition-all active:scale-95">
-                  <div className="w-full h-12 bg-slate-700 rounded-lg flex items-center justify-center mb-2">
-                    <span className="text-lg font-bold text-slate-500">{p.name.charAt(0)}</span>
-                  </div>
-                  <p className="text-white text-xs font-semibold leading-tight line-clamp-2">{p.name}</p>
-                  <div className="flex items-center justify-between mt-1.5">
-                    <span className="text-violet-400 font-bold text-sm">{fmt(p.price)}</span>
-                    <span className="text-slate-500 text-xs">{p.stock}</span>
-                  </div>
-                </button>
+                <div key={p.id} className="relative">
+                  <button onClick={() => addToCart(p)}
+                    className="w-full bg-slate-800 border border-slate-700 active:border-violet-500 rounded-xl p-3 text-left transition-all active:scale-95">
+                    <div className="w-full h-12 bg-slate-700 rounded-lg flex items-center justify-center mb-2">
+                      <span className="text-lg font-bold text-slate-500">{p.name.charAt(0)}</span>
+                    </div>
+                    <p className="text-white text-xs font-semibold leading-tight line-clamp-2">{p.name}</p>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className="text-violet-400 font-bold text-sm">{fmt(p.price)}</span>
+                      <span className="text-slate-500 text-xs">{p.stock}</span>
+                    </div>
+                  </button>
+                  {canEditPrice && (
+                    <button
+                      onClick={e => { e.stopPropagation(); setPriceEditProduct(p); }}
+                      className="absolute top-2 right-2 w-7 h-7 bg-slate-900/80 hover:bg-violet-600 rounded-lg flex items-center justify-center"
+                      title="Editar precio">
+                      <Pencil size={12} className="text-slate-400"/>
+                    </button>
+                  )}
+                </div>
               ))}
               {filtered.length === 0 && <p className="col-span-2 text-center py-10 text-slate-500 text-sm">Sin productos</p>}
             </div>
@@ -454,6 +541,20 @@ export default function POS() {
           </div>
           <span className="text-violet-200 text-lg">{fmt(total)}</span>
         </button>
+      )}
+
+      {/* ── Price Edit Modal ── */}
+      {priceEditProduct && (
+        <PriceEditModal
+          product={priceEditProduct}
+          onClose={() => setPriceEditProduct(null)}
+          onApply={(customPrice) => {
+            // Agregar al carrito con el precio personalizado
+            const withCustomPrice = { ...priceEditProduct, price: customPrice };
+            addToCart(withCustomPrice);
+            setPriceEditProduct(null);
+          }}
+        />
       )}
 
       {/* ── Payment Modal ── */}
