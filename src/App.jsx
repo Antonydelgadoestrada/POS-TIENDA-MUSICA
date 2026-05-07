@@ -35,7 +35,7 @@ function AppContent() {
   const { state, hasPermission, dbLoading, dbError } = useApp();
   const { currentUser, activeModule } = state;
 
-  if (dbLoading && DB_ENABLED) {
+  if ((dbLoading || dbError) && DB_ENABLED) {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center gap-4 px-4">
         <div className="w-12 h-12 rounded-2xl bg-violet-600 flex items-center justify-center mb-2">
