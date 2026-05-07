@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { MODULE_PERMISSION } from '../data/permissions';
+import { DB_ENABLED } from '../lib/supabase';
 import {
   LayoutDashboard, ShoppingCart, Package, Warehouse, ArrowLeftRight,
   ClipboardList, AlertTriangle, Wallet, Settings, Users, LogOut,
@@ -133,12 +134,16 @@ export default function Layout({ children }) {
       {/* ── MAIN AREA ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* Banner error de BD */}
-        {dbError && (
+        {/* Banner estado de BD */}
+        {(!DB_ENABLED || dbError) && (
           <div className="bg-amber-500/20 border-b border-amber-500/30 px-4 py-1.5 text-xs text-amber-400 flex items-center gap-2 shrink-0">
             <AlertTriangle size={12} className="shrink-0"/>
             <span className="font-semibold">Modo sin conexión</span>
-            <span className="opacity-60 hidden sm:inline">— los datos no se guardarán al recargar. Ejecuta el SQL schema en Supabase.</span>
+            <span className="opacity-70 hidden sm:inline">
+              {dbError
+                ? ` — ${dbError}`
+                : ' — variables VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY no detectadas en el build.'}
+            </span>
           </div>
         )}
 
