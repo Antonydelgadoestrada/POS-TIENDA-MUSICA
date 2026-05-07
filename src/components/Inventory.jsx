@@ -151,13 +151,13 @@ export default function Inventory() {
         </select>
       </div>
 
-      {/* Table */}
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+      {/* Tabla — md+ */}
+      <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[750px]">
             <thead className="bg-slate-900/50">
               <tr className="text-slate-400 text-xs uppercase tracking-wide">
-                {['Código','Producto','Categoría','Ubicación','Stock actual','Mínimo','Máximo','Estado','Valor','Ajuste'].map(h => (
+                {['Código','Producto','Categoría','Ubicación','Stock','Mín','Máx','Estado','Valor','Ajuste'].map(h => (
                   <th key={h} className="text-left px-3 py-3 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -165,31 +165,25 @@ export default function Inventory() {
             <tbody className="divide-y divide-slate-700/50">
               {filtered.map(p => (
                 <tr key={p.id} className="hover:bg-slate-700/30 transition-colors">
-                  <td className="px-4 py-3 font-mono text-violet-400 text-xs">{p.sku}</td>
-                  <td className="px-4 py-3">
-                    <p className="text-white font-medium text-sm truncate max-w-[180px]">{p.name}</p>
+                  <td className="px-3 py-3 font-mono text-violet-400 text-xs">{p.sku}</td>
+                  <td className="px-3 py-3">
+                    <p className="text-white font-medium text-sm truncate max-w-[160px]">{p.name}</p>
                     <p className="text-slate-500 text-xs">{p.brand}</p>
                   </td>
-                  <td className="px-4 py-3 text-slate-400 text-xs">{p.category}</td>
-                  <td className="px-4 py-3 text-slate-500 text-xs">{p.location}</td>
-                  <td className="px-4 py-3">
-                    <span className={`font-bold text-lg ${p.stock === 0 ? 'text-red-400' : p.stock <= p.stockMin ? 'text-amber-400' : 'text-emerald-400'}`}>
-                      {p.stock}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-slate-400">{p.stockMin}</td>
-                  <td className="px-4 py-3 text-slate-400">{p.stockMax}</td>
-                  <td className="px-4 py-3"><StockBadge product={p}/></td>
-                  <td className="px-4 py-3 text-slate-300 font-medium whitespace-nowrap">{fmt(p.stock * p.cost)}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3 text-slate-400 text-xs">{p.category}</td>
+                  <td className="px-3 py-3 text-slate-500 text-xs">{p.location}</td>
+                  <td className="px-3 py-3"><span className={`font-bold text-lg ${p.stock === 0 ? 'text-red-400' : p.stock <= p.stockMin ? 'text-amber-400' : 'text-emerald-400'}`}>{p.stock}</span></td>
+                  <td className="px-3 py-3 text-slate-400 text-sm">{p.stockMin}</td>
+                  <td className="px-3 py-3 text-slate-400 text-sm">{p.stockMax}</td>
+                  <td className="px-3 py-3"><StockBadge product={p}/></td>
+                  <td className="px-3 py-3 text-slate-300 font-medium whitespace-nowrap text-xs">{fmt(p.stock * p.cost)}</td>
+                  <td className="px-3 py-3">
                     {canAdjust ? (
                       <button onClick={() => setAdjustProduct(p)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-violet-600 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-all">
+                        className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-violet-600 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-all">
                         <SlidersHorizontal size={12}/> Ajustar
                       </button>
-                    ) : (
-                      <span className="text-slate-600 text-xs px-3">—</span>
-                    )}
+                    ) : <span className="text-slate-600 text-xs">—</span>}
                   </td>
                 </tr>
               ))}
@@ -199,11 +193,49 @@ export default function Inventory() {
         </div>
       </div>
 
-      <div className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 flex items-center justify-between text-xs">
+      {/* Cards móvil */}
+      <div className="md:hidden space-y-2">
+        {filtered.length === 0 && <p className="text-center text-slate-500 py-10">Sin productos</p>}
+        {filtered.map(p => (
+          <div key={p.id} className="bg-slate-800 border border-slate-700 rounded-2xl p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-white font-semibold text-sm truncate">{p.name}</p>
+                <p className="text-slate-500 text-xs">{p.brand} · {p.category}</p>
+                <p className="text-violet-400 text-xs font-mono mt-0.5">{p.sku}</p>
+              </div>
+              <StockBadge product={p}/>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              <div className="bg-slate-900 rounded-xl p-2.5 text-center">
+                <p className={`font-bold text-xl ${p.stock === 0 ? 'text-red-400' : p.stock <= p.stockMin ? 'text-amber-400' : 'text-emerald-400'}`}>{p.stock}</p>
+                <p className="text-slate-500 text-[10px]">Stock</p>
+              </div>
+              <div className="bg-slate-900 rounded-xl p-2.5 text-center">
+                <p className="text-slate-300 font-bold text-xl">{p.stockMin}</p>
+                <p className="text-slate-500 text-[10px]">Mínimo</p>
+              </div>
+              <div className="bg-slate-900 rounded-xl p-2.5 text-center">
+                <p className="text-slate-300 font-bold text-xl">{p.stockMax}</p>
+                <p className="text-slate-500 text-[10px]">Máximo</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-slate-400 text-xs">Valor: <strong className="text-white">{fmt(p.stock * p.cost)}</strong></span>
+              {canAdjust && (
+                <button onClick={() => setAdjustProduct(p)}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-slate-700 hover:bg-violet-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold transition-all">
+                  <SlidersHorizontal size={13}/> Ajustar stock
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 text-xs">
         <span className="text-slate-400">{filtered.length} productos mostrados</span>
-        <span className="text-slate-400">Valor total inventario: <strong className="text-white">
-          {fmt(filtered.reduce((s,p) => s + p.stock * p.cost, 0))}
-        </strong></span>
+        <span className="text-slate-400">Valor total: <strong className="text-white">{fmt(filtered.reduce((s,p) => s + p.stock * p.cost, 0))}</strong></span>
       </div>
 
       {adjustProduct && <AdjustModal product={adjustProduct} onClose={() => setAdjustProduct(null)} />}

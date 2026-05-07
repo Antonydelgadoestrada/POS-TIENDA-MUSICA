@@ -170,7 +170,7 @@ function UserModal({ user, onClose, onSave }) {
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
           {/* Datos básicos */}
           <div className="p-5 space-y-4 border-b border-slate-700">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Nombre completo *</label>
                 <input value={form.name} onChange={e => set('name', e.target.value)} required placeholder="Juan Pérez"
@@ -182,7 +182,7 @@ function UserModal({ user, onClose, onSave }) {
                   className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">
                   Contraseña {user && <span className="text-slate-600">(dejar vacío para mantener)</span>}

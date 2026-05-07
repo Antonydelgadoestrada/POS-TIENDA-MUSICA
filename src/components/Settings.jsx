@@ -141,7 +141,7 @@ export default function Settings() {
         {tab === 'taxes' && (
           <div className="space-y-4">
             <h3 className="text-white font-bold mb-4">Configuración de impuestos</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Nombre del impuesto</label>
                 <input value={form.taxName||''} onChange={e => set('taxName', e.target.value)}
@@ -192,7 +192,7 @@ export default function Settings() {
         {tab === 'payments' && (
           <div className="space-y-4">
             <h3 className="text-white font-bold mb-4">Métodos de pago habilitados</h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {ALL_PAYMENTS.map(method => {
                 const enabled = form.paymentMethods.includes(method);
                 return (

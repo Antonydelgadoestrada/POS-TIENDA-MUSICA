@@ -59,7 +59,7 @@ export default function Kardex() {
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar..."
                 className="w-full bg-slate-900 border border-slate-700 text-white rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-violet-500" />
             </div>
-            <div className="space-y-1 max-h-80 overflow-y-auto">
+            <div className="space-y-1 max-h-44 lg:max-h-80 overflow-y-auto">
               {productSearch.map(p => (
                 <button key={p.id} onClick={() => setSelectedProduct(p.id)}
                   className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all ${

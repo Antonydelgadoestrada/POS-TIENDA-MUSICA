@@ -141,8 +141,8 @@ export default function Dashboard() {
         {/* Bar - 7 days */}
         <div className="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-2xl p-4 sm:p-5">
           <h3 className="text-white font-semibold mb-4">Ventas últimos 7 días</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={chartData7} barSize={32}>
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={chartData7} barSize={28}>
               <XAxis dataKey="name" tick={{ fill:'#94a3b8', fontSize:12 }} axisLine={false} tickLine={false} />
               <YAxis tickFormatter={v => `S/${v}`} tick={{ fill:'#94a3b8', fontSize:11 }} axisLine={false} tickLine={false} width={55} />
               <Tooltip content={<CustomTooltip />} />

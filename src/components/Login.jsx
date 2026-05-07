@@ -36,7 +36,7 @@ export default function Login() {
 
       <div className="w-full max-w-md animate-slide-up px-2 sm:px-0">
         {/* Card */}
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 shadow-2xl">
+        <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="inline-flex w-16 h-16 rounded-2xl bg-violet-600 items-center justify-center mb-4 glow-purple">

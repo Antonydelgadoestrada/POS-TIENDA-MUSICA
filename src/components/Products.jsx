@@ -189,7 +189,7 @@ function ProductModal({ product, selectedType, categories, onClose, onSave }) {
           </div>
 
           {/* Categoría + Marca */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1">Categoría</label>
               {addingCat ? (
@@ -242,7 +242,7 @@ function ProductModal({ product, selectedType, categories, onClose, onSave }) {
           )}
 
           {/* Precios */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {numericFields.map(([label, key]) => (
               <div key={key}>
                 <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
@@ -259,7 +259,7 @@ function ProductModal({ product, selectedType, categories, onClose, onSave }) {
 
           {/* Stock — solo si el tipo lo requiere */}
           {cfg.showStock && (
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {stockFields.map(([label, key]) => (
                 <div key={key}>
                   <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
@@ -522,9 +522,9 @@ export default function Products() {
 
       <p className="text-slate-500 text-xs">{filtered.length} de {products.length} ítems</p>
 
-      {/* TABLE VIEW */}
+      {/* TABLE VIEW — solo en md+ */}
       {viewMode === 'table' && (
-        <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+        <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[700px]">
               <thead className="bg-slate-900/50">
@@ -584,9 +584,9 @@ export default function Products() {
         </div>
       )}
 
-      {/* GRID VIEW */}
-      {viewMode === 'grid' && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+      {/* GRID VIEW en md+, o siempre en móvil cuando está en mode tabla */}
+      {(viewMode === 'grid' || viewMode === 'table') && (
+        <div className={`grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 ${viewMode === 'table' ? 'md:hidden' : ''}`}>
           {filtered.map(p => {
             const sb = stockBadge(p);
             const cfg = getTypeConfig(p.type);

@@ -174,7 +174,7 @@ export default function CashRegister() {
           </div>
         </div>
         <div className="text-right">
-          {currentCashRegister && <p className="text-3xl font-bold text-white">{fmt(cashBalance)}</p>}
+          {currentCashRegister && <p className="text-2xl sm:text-3xl font-bold text-white">{fmt(cashBalance)}</p>}
           {currentCashRegister
             ? canClose && <button onClick={() => setShowClose(true)} className="mt-2 flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
                 <Lock size={14}/> Cerrar caja
@@ -214,14 +214,33 @@ export default function CashRegister() {
             </div>
           )}
 
-          {/* Movements table */}
+          {/* Movements — cards en móvil, tabla en desktop */}
           <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-slate-700">
+            <div className="px-4 sm:px-5 py-4 border-b border-slate-700">
               <h3 className="text-white font-bold">Movimientos de caja</h3>
               <p className="text-slate-400 text-xs mt-0.5">{currentCashRegister.movements.length} movimientos registrados</p>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            {/* Cards móvil */}
+            <div className="md:hidden divide-y divide-slate-700/50">
+              {[...currentCashRegister.movements].reverse().map(m => (
+                <div key={m.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${m.type==='INGRESO'?'bg-emerald-500/20 text-emerald-400':'bg-red-500/20 text-red-400'}`}>{m.type}</span>
+                      <span className="text-slate-400 text-xs">{new Date(m.createdAt).toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'})}</span>
+                    </div>
+                    <p className="text-white text-sm font-medium truncate">{m.concept}</p>
+                    {m.description && <p className="text-slate-500 text-xs truncate">{m.description}</p>}
+                  </div>
+                  <span className={`font-bold text-sm whitespace-nowrap shrink-0 ${m.type==='INGRESO'?'text-emerald-400':'text-red-400'}`}>
+                    {m.type==='INGRESO'?'+':'-'}{fmt(m.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {/* Tabla desktop */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm min-w-[550px]">
                 <thead className="bg-slate-900/50">
                   <tr className="text-slate-400 text-xs uppercase tracking-wide">
                     {['Hora','Tipo','Concepto','Descripción','Usuario','Monto'].map(h => (
@@ -232,27 +251,19 @@ export default function CashRegister() {
                 <tbody className="divide-y divide-slate-700/50">
                   {[...currentCashRegister.movements].reverse().map(m => (
                     <tr key={m.id} className="hover:bg-slate-700/30 transition-colors">
-                      <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">
-                        {new Date(m.createdAt).toLocaleTimeString('es-PE', { hour:'2-digit', minute:'2-digit' })}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.type==='INGRESO'?'bg-emerald-500/20 text-emerald-400':'bg-red-500/20 text-red-400'}`}>
-                          {m.type}
-                        </span>
-                      </td>
+                      <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{new Date(m.createdAt).toLocaleTimeString('es-PE', { hour:'2-digit', minute:'2-digit' })}</td>
+                      <td className="px-4 py-3"><span className={`px-2 py-0.5 rounded-full text-xs font-medium ${m.type==='INGRESO'?'bg-emerald-500/20 text-emerald-400':'bg-red-500/20 text-red-400'}`}>{m.type}</span></td>
                       <td className="px-4 py-3 text-white text-xs">{m.concept}</td>
                       <td className="px-4 py-3 text-slate-400 text-xs">{m.description}</td>
                       <td className="px-4 py-3 text-slate-400 text-xs">{m.userName}</td>
-                      <td className={`px-4 py-3 font-bold whitespace-nowrap ${m.type==='INGRESO'?'text-emerald-400':'text-red-400'}`}>
-                        {m.type==='INGRESO'?'+':'-'}{fmt(m.amount)}
-                      </td>
+                      <td className={`px-4 py-3 font-bold whitespace-nowrap ${m.type==='INGRESO'?'text-emerald-400':'text-red-400'}`}>{m.type==='INGRESO'?'+':'-'}{fmt(m.amount)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
             <div className="px-5 py-3 border-t border-slate-700 flex justify-end">
-              <span className="text-white font-bold">Saldo actual: <span className="text-violet-400">{fmt(cashBalance)}</span></span>
+              <span className="text-white font-bold text-sm">Saldo: <span className="text-violet-400">{fmt(cashBalance)}</span></span>
             </div>
           </div>
         </>

@@ -393,8 +393,56 @@ export default function Sales() {
 
       <p className="text-slate-500 text-xs">{filtered.length} venta(s) encontradas</p>
 
-      {/* Tabla */}
-      <div className="bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
+      {/* ── Cards móvil ── */}
+      <div className="md:hidden space-y-2">
+        {filtered.length === 0 && (
+          <div className="text-center py-14">
+            <ShoppingBag size={36} className="text-slate-700 mx-auto mb-3"/>
+            <p className="text-slate-500 text-sm">No se encontraron ventas</p>
+          </div>
+        )}
+        {filtered.map(sale => (
+          <div key={sale.id} onClick={() => setModalDetail(sale)}
+            className={`bg-slate-800 border border-slate-700 rounded-2xl p-4 active:bg-slate-700/50 transition-colors ${sale.status === 'ANULADA' ? 'opacity-60' : ''}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="font-mono text-violet-400 font-bold text-sm">{sale.id}</span>
+                <p className="text-slate-400 text-xs mt-0.5">{new Date(sale.createdAt).toLocaleDateString('es-PE')} · {new Date(sale.createdAt).toLocaleTimeString('es-PE',{hour:'2-digit',minute:'2-digit'})} · {sale.userName}</p>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border shrink-0 ${STATUS_STYLE[sale.status] || STATUS_STYLE.ACTIVA}`}>
+                {STATUS_LABEL[sale.status] || sale.status}
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-3">
+              <div>
+                <p className="text-white font-bold text-lg">{fmt(sale.total)}</p>
+                <p className="text-slate-500 text-xs">{sale.items.length} ítem(s) · {sale.paymentSummary}</p>
+              </div>
+              <div className="flex gap-1.5">
+                <button onClick={e => { e.stopPropagation(); setModalDetail(sale); }}
+                  className="p-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-all">
+                  <Eye size={15}/>
+                </button>
+                {sale.status === 'ACTIVA' && canReturn && (
+                  <button onClick={e => { e.stopPropagation(); setModalReturn(sale); }}
+                    className="p-2.5 rounded-xl bg-slate-700 hover:bg-amber-600/40 text-slate-400 hover:text-amber-400 transition-all">
+                    <RotateCcw size={15}/>
+                  </button>
+                )}
+                {sale.status === 'ACTIVA' && canCancel && (
+                  <button onClick={e => { e.stopPropagation(); setModalCancel(sale); }}
+                    className="p-2.5 rounded-xl bg-slate-700 hover:bg-red-600/40 text-slate-400 hover:text-red-400 transition-all">
+                    <XCircle size={15}/>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Tabla md+ ── */}
+      <div className="hidden md:block bg-slate-800 border border-slate-700 rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[800px]">
             <thead className="bg-slate-900/50">
@@ -407,60 +455,33 @@ export default function Sales() {
             <tbody className="divide-y divide-slate-700/50">
               {filtered.map(sale => (
                 <tr key={sale.id} className={`hover:bg-slate-700/30 transition-colors ${sale.status === 'ANULADA' ? 'opacity-60' : ''}`}>
-                  <td className="px-4 py-3 font-mono text-violet-400 font-semibold whitespace-nowrap">{sale.id}</td>
-                  <td className="px-4 py-3 text-slate-300 text-xs whitespace-nowrap">{new Date(sale.createdAt).toLocaleDateString('es-PE')}</td>
-                  <td className="px-4 py-3 text-slate-400 text-xs">{new Date(sale.createdAt).toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'})}</td>
-                  <td className="px-4 py-3 text-slate-300 text-xs whitespace-nowrap">{sale.userName}</td>
-                  <td className="px-4 py-3 text-center text-slate-400 text-xs">{sale.items.length}</td>
-                  <td className="px-4 py-3 text-emerald-400 text-xs whitespace-nowrap">{sale.discount > 0 ? `-${fmt(sale.discount)}` : '—'}</td>
-                  <td className="px-4 py-3 text-slate-400 text-xs whitespace-nowrap">{fmt(sale.tax)}</td>
-                  <td className="px-4 py-3 font-bold text-white whitespace-nowrap">{fmt(sale.total)}</td>
-                  <td className="px-4 py-3 text-xs whitespace-nowrap">
-                    <span className="bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md">{sale.paymentSummary}</span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${STATUS_STYLE[sale.status] || STATUS_STYLE.ACTIVA}`}>
-                      {STATUS_LABEL[sale.status] || sale.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  <td className="px-3 py-3 font-mono text-violet-400 font-semibold whitespace-nowrap">{sale.id}</td>
+                  <td className="px-3 py-3 text-slate-300 text-xs whitespace-nowrap">{new Date(sale.createdAt).toLocaleDateString('es-PE')}</td>
+                  <td className="px-3 py-3 text-slate-400 text-xs">{new Date(sale.createdAt).toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'})}</td>
+                  <td className="px-3 py-3 text-slate-300 text-xs whitespace-nowrap">{sale.userName}</td>
+                  <td className="px-3 py-3 text-center text-slate-400 text-xs">{sale.items.length}</td>
+                  <td className="px-3 py-3 text-emerald-400 text-xs whitespace-nowrap">{sale.discount > 0 ? `-${fmt(sale.discount)}` : '—'}</td>
+                  <td className="px-3 py-3 text-slate-400 text-xs whitespace-nowrap">{fmt(sale.tax)}</td>
+                  <td className="px-3 py-3 font-bold text-white whitespace-nowrap">{fmt(sale.total)}</td>
+                  <td className="px-3 py-3 text-xs whitespace-nowrap"><span className="bg-slate-700 text-slate-300 px-2 py-0.5 rounded-md">{sale.paymentSummary}</span></td>
+                  <td className="px-3 py-3 whitespace-nowrap"><span className={`px-2 py-0.5 rounded-full text-xs font-semibold border ${STATUS_STYLE[sale.status] || STATUS_STYLE.ACTIVA}`}>{STATUS_LABEL[sale.status] || sale.status}</span></td>
+                  <td className="px-3 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-1.5">
-                      <button onClick={() => setModalDetail(sale)}
-                        className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-all" title="Ver detalle">
-                        <Eye size={13}/>
-                      </button>
-                      {sale.status === 'ACTIVA' && canReturn && (
-                        <button onClick={() => { setModalDetail(null); setModalReturn(sale); }}
-                          className="p-1.5 rounded-lg bg-slate-700 hover:bg-amber-600/40 text-slate-400 hover:text-amber-400 transition-all" title="Devolución">
-                          <RotateCcw size={13}/>
-                        </button>
-                      )}
-                      {sale.status === 'ACTIVA' && canCancel && (
-                        <button onClick={() => { setModalDetail(null); setModalCancel(sale); }}
-                          className="p-1.5 rounded-lg bg-slate-700 hover:bg-red-600/40 text-slate-400 hover:text-red-400 transition-all" title="Anular">
-                          <XCircle size={13}/>
-                        </button>
-                      )}
+                      <button onClick={() => setModalDetail(sale)} className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-400 hover:text-white transition-all"><Eye size={13}/></button>
+                      {sale.status === 'ACTIVA' && canReturn && <button onClick={() => { setModalDetail(null); setModalReturn(sale); }} className="p-1.5 rounded-lg bg-slate-700 hover:bg-amber-600/40 text-slate-400 hover:text-amber-400 transition-all"><RotateCcw size={13}/></button>}
+                      {sale.status === 'ACTIVA' && canCancel && <button onClick={() => { setModalDetail(null); setModalCancel(sale); }} className="p-1.5 rounded-lg bg-slate-700 hover:bg-red-600/40 text-slate-400 hover:text-red-400 transition-all"><XCircle size={13}/></button>}
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && (
-            <div className="text-center py-14">
-              <ShoppingBag size={36} className="text-slate-700 mx-auto mb-3"/>
-              <p className="text-slate-500 text-sm">No se encontraron ventas</p>
-            </div>
-          )}
+          {filtered.length === 0 && <div className="text-center py-14"><ShoppingBag size={36} className="text-slate-700 mx-auto mb-3"/><p className="text-slate-500 text-sm">No se encontraron ventas</p></div>}
         </div>
-        {/* Total filtrado */}
         {filtered.length > 0 && (
           <div className="px-5 py-3 border-t border-slate-700 flex justify-between items-center text-xs text-slate-400">
             <span>{filtered.filter(s => s.status === 'ACTIVA').length} activas · {filtered.filter(s => s.status === 'ANULADA').length} anuladas</span>
-            <span className="font-bold text-white">
-              Total activo: <span className="text-emerald-400">{fmt(filtered.filter(s => s.status === 'ACTIVA').reduce((s, v) => s + v.total, 0))}</span>
-            </span>
+            <span className="font-bold text-white">Total activo: <span className="text-emerald-400">{fmt(filtered.filter(s => s.status === 'ACTIVA').reduce((s, v) => s + v.total, 0))}</span></span>
           </div>
         )}
       </div>

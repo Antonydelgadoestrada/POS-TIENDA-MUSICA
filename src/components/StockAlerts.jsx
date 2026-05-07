@@ -51,30 +51,34 @@ export default function StockAlerts() {
           </h3>
           <div className="space-y-2">
             {outOfStock.map(p => (
-              <div key={p.id} className="bg-slate-800 border border-red-500/30 rounded-2xl px-5 py-4 flex items-center gap-4">
-                <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center shrink-0">
-                  <span className="text-red-400 font-bold text-lg">{p.name.charAt(0)}</span>
+              <div key={p.id} className="bg-slate-800 border border-red-500/30 rounded-2xl px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 bg-red-500/10 rounded-xl flex items-center justify-center shrink-0">
+                    <span className="text-red-400 font-bold text-lg">{p.name.charAt(0)}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-white font-semibold truncate">{p.name}</p>
+                    <p className="text-slate-500 text-xs truncate">{p.brand} · {p.category}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold truncate">{p.name}</p>
-                  <p className="text-slate-500 text-xs">{p.brand} · {p.category} · SKU: {p.sku}</p>
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="text-center w-16 sm:w-20">
+                    <p className="text-red-400 font-bold text-xl sm:text-2xl">0</p>
+                    <p className="text-slate-500 text-[10px] sm:text-xs">en stock</p>
+                  </div>
+                  <div className="text-center w-16 sm:w-20">
+                    <p className="text-slate-300 font-semibold">{p.stockMin}</p>
+                    <p className="text-slate-500 text-[10px] sm:text-xs">mínimo</p>
+                  </div>
+                  <div className="text-center bg-red-500/10 rounded-xl px-3 py-2 w-20">
+                    <p className="text-red-400 font-bold">-{p.stockMin}</p>
+                    <p className="text-slate-500 text-[10px]">faltan</p>
+                  </div>
+                  <button onClick={() => handleReorder(p)}
+                    className="flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap">
+                    Reponer <ArrowRight size={13}/>
+                  </button>
                 </div>
-                <div className="text-center shrink-0 w-20">
-                  <p className="text-red-400 font-bold text-2xl">0</p>
-                  <p className="text-slate-500 text-xs">en stock</p>
-                </div>
-                <div className="text-center shrink-0 w-20">
-                  <p className="text-slate-300 font-semibold">{p.stockMin}</p>
-                  <p className="text-slate-500 text-xs">mínimo</p>
-                </div>
-                <div className="text-center shrink-0 w-24 bg-red-500/10 rounded-xl px-3 py-2">
-                  <p className="text-red-400 font-bold">-{p.stockMin}</p>
-                  <p className="text-slate-500 text-xs">diferencia</p>
-                </div>
-                <button onClick={() => handleReorder(p)}
-                  className="shrink-0 flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold transition-all">
-                  Reponer <ArrowRight size={13}/>
-                </button>
               </div>
             ))}
           </div>
@@ -93,34 +97,37 @@ export default function StockAlerts() {
               const diff = p.stockMin - p.stock;
               const pct = Math.round((p.stock / p.stockMin) * 100);
               return (
-                <div key={p.id} className="bg-slate-800 border border-amber-500/20 rounded-2xl px-5 py-4 flex items-center gap-4">
-                  <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center shrink-0">
-                    <span className="text-amber-400 font-bold text-lg">{p.name.charAt(0)}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white font-semibold truncate">{p.name}</p>
-                    <p className="text-slate-500 text-xs">{p.brand} · {p.category} · SKU: {p.sku}</p>
-                    {/* mini progress bar */}
-                    <div className="mt-1.5 w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                      <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${Math.min(pct,100)}%` }} />
+                <div key={p.id} className="bg-slate-800 border border-amber-500/20 rounded-2xl px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center shrink-0">
+                      <span className="text-amber-400 font-bold text-lg">{p.name.charAt(0)}</span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-white font-semibold truncate">{p.name}</p>
+                      <p className="text-slate-500 text-xs truncate">{p.brand} · {p.category}</p>
+                      <div className="mt-1.5 h-1.5 bg-slate-700 rounded-full overflow-hidden max-w-[120px]">
+                        <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${Math.min(pct,100)}%` }} />
+                      </div>
                     </div>
                   </div>
-                  <div className="text-center shrink-0 w-20">
-                    <p className="text-amber-400 font-bold text-2xl">{p.stock}</p>
-                    <p className="text-slate-500 text-xs">en stock</p>
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="text-center w-16 sm:w-20">
+                      <p className="text-amber-400 font-bold text-xl sm:text-2xl">{p.stock}</p>
+                      <p className="text-slate-500 text-[10px] sm:text-xs">en stock</p>
+                    </div>
+                    <div className="text-center w-16 sm:w-20">
+                      <p className="text-slate-300 font-semibold">{p.stockMin}</p>
+                      <p className="text-slate-500 text-[10px] sm:text-xs">mínimo</p>
+                    </div>
+                    <div className="text-center bg-amber-500/10 rounded-xl px-3 py-2 w-20">
+                      <p className="text-amber-400 font-bold">-{diff}</p>
+                      <p className="text-slate-500 text-[10px]">faltan</p>
+                    </div>
+                    <button onClick={() => handleReorder(p)}
+                      className="flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold transition-all whitespace-nowrap">
+                      Reponer <ArrowRight size={13}/>
+                    </button>
                   </div>
-                  <div className="text-center shrink-0 w-20">
-                    <p className="text-slate-300 font-semibold">{p.stockMin}</p>
-                    <p className="text-slate-500 text-xs">mínimo</p>
-                  </div>
-                  <div className="text-center shrink-0 w-24 bg-amber-500/10 rounded-xl px-3 py-2">
-                    <p className="text-amber-400 font-bold">-{diff}</p>
-                    <p className="text-slate-500 text-xs">diferencia</p>
-                  </div>
-                  <button onClick={() => handleReorder(p)}
-                    className="shrink-0 flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white px-3 py-2 rounded-xl text-xs font-semibold transition-all">
-                    Reponer <ArrowRight size={13}/>
-                  </button>
                 </div>
               );
             })}
