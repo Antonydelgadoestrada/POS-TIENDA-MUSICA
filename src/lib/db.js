@@ -8,78 +8,77 @@ import {
 export async function loadAllData() {
   if (!DB_ENABLED) return null;
 
-  try {
-    const [
-      { data: users,     error: e1 },
-      { data: products,  error: e2 },
-      { data: sales,     error: e3 },
-      { data: kardex,    error: e4 },
-      { data: cashRegs,  error: e5 },
-      { data: config,    error: e6 },
-      { data: incoming,  error: e7 },
-      { data: outgoing,  error: e8 },
-    ] = await Promise.all([
-      supabase.from('users').select('*').order('createdAt'),
-      supabase.from('products').select('*').order('createdAt'),
-      supabase.from('sales').select('*').order('createdAt'),
-      supabase.from('kardex').select('*').order('createdAt'),
-      supabase.from('cash_registers').select('*'),
-      supabase.from('company_config').select('*').eq('id', 1).single(),
-      supabase.from('incoming_history').select('*').order('createdAt'),
-      supabase.from('outgoing_history').select('*').order('createdAt'),
-    ]);
+  // Verificar que las tablas existen antes de cargar todo
+  const { error: connError } = await supabase.from('users').select('id').limit(1);
+  if (connError) throw new Error(`No se pudo conectar a Supabase: ${connError.message}`);
 
-    const loadErrors = [e1,e2,e3,e4,e5,e7,e8].filter(Boolean);
-    if (loadErrors.length) console.warn('Supabase load warnings:', loadErrors);
+  const [
+    { data: users,     error: e1 },
+    { data: products,  error: e2 },
+    { data: sales,     error: e3 },
+    { data: kardex,    error: e4 },
+    { data: cashRegs,  error: e5 },
+    { data: config,    error: e6 },
+    { data: incoming,  error: e7 },
+    { data: outgoing,  error: e8 },
+  ] = await Promise.all([
+    supabase.from('users').select('*').order('createdAt'),
+    supabase.from('products').select('*').order('createdAt'),
+    supabase.from('sales').select('*').order('createdAt'),
+    supabase.from('kardex').select('*').order('createdAt'),
+    supabase.from('cash_registers').select('*'),
+    supabase.from('company_config').select('*').eq('id', 1).single(),
+    supabase.from('incoming_history').select('*').order('createdAt'),
+    supabase.from('outgoing_history').select('*').order('createdAt'),
+  ]);
 
-    // Primera vez: sembrar datos iniciales si las tablas están vacías
-    if (!users || users.length === 0) {
-      await seedInitialData();
-      return loadAllData(); // Reintentar después de sembrar
-    }
+  const loadErrors = [e1,e2,e3,e4,e5,e7,e8].filter(Boolean);
+  if (loadErrors.length) console.warn('Supabase load warnings:', loadErrors);
 
-    const openCashReg = cashRegs?.find(cr => cr.status === 'OPEN') ?? null;
-    const cashHistory = cashRegs?.filter(cr => cr.status !== 'OPEN') ?? [];
-
-    // Calcular nextSaleId desde las ventas existentes
-    const maxId = (sales ?? []).reduce((max, s) => {
-      const n = parseInt(s.id?.replace('V-', '') ?? '0');
-      return isNaN(n) ? max : Math.max(max, n);
-    }, 3);
-
-    return {
-      users:               users     ?? [],
-      products:            products  ?? [],
-      sales:               sales     ?? [],
-      kardex:              kardex    ?? [],
-      currentCashRegister: openCashReg,
-      cashHistory,
-      incomingHistory:     incoming  ?? [],
-      outgoingHistory:     outgoing  ?? [],
-      companyConfig:       config    ?? INITIAL_COMPANY,
-      nextSaleId:          maxId + 1,
-    };
-  } catch (err) {
-    console.error('Error cargando datos de Supabase:', err);
-    return null;
+  // Primera vez: sembrar datos iniciales si las tablas están vacías
+  if (!users || users.length === 0) {
+    await seedInitialData();
+    return loadAllData();
   }
+
+  const openCashReg = cashRegs?.find(cr => cr.status === 'OPEN') ?? null;
+  const cashHistory = cashRegs?.filter(cr => cr.status !== 'OPEN') ?? [];
+
+  const maxId = (sales ?? []).reduce((max, s) => {
+    const n = parseInt(s.id?.replace('V-', '') ?? '0');
+    return isNaN(n) ? max : Math.max(max, n);
+  }, 3);
+
+  return {
+    users:               users     ?? [],
+    products:            products  ?? [],
+    sales:               sales     ?? [],
+    kardex:              kardex    ?? [],
+    currentCashRegister: openCashReg,
+    cashHistory,
+    incomingHistory:     incoming  ?? [],
+    outgoingHistory:     outgoing  ?? [],
+    companyConfig:       config    ?? INITIAL_COMPANY,
+    nextSaleId:          maxId + 1,
+  };
 }
 
 // ── Sembrar datos iniciales (primera vez) ─────────────────────────────────────
 async function seedInitialData() {
-  try {
-    await Promise.all([
-      supabase.from('users').upsert(INITIAL_USERS),
-      supabase.from('products').upsert(INITIAL_PRODUCTS),
-      supabase.from('kardex').upsert(INITIAL_KARDEX),
-      supabase.from('cash_registers').upsert([{ ...INITIAL_CASH_REGISTER, status: 'OPEN' }]),
-      supabase.from('company_config').upsert([{ id: 1, ...INITIAL_COMPANY }]),
-      supabase.from('sales').upsert(INITIAL_SALES),
-    ]);
-    console.log('✅ Datos iniciales cargados en Supabase');
-  } catch (err) {
-    console.error('Error sembrando datos:', err);
-  }
+  const results = await Promise.allSettled([
+    supabase.from('users').upsert(INITIAL_USERS),
+    supabase.from('products').upsert(INITIAL_PRODUCTS),
+    supabase.from('kardex').upsert(INITIAL_KARDEX),
+    supabase.from('cash_registers').upsert([{ ...INITIAL_CASH_REGISTER, status: 'OPEN' }]),
+    supabase.from('company_config').upsert([{ id: 1, ...INITIAL_COMPANY }]),
+    supabase.from('sales').upsert(INITIAL_SALES),
+  ]);
+  const names = ['users','products','kardex','cash_registers','company_config','sales'];
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') console.error(`Seed error [${names[i]}]:`, r.reason);
+    else if (r.value?.error) console.error(`Seed error [${names[i]}]:`, r.value.error);
+  });
+  console.log('✅ Datos iniciales sembrados en Supabase');
 }
 
 // ── Operaciones por tabla ─────────────────────────────────────────────────────

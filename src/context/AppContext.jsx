@@ -412,6 +412,7 @@ const AppContext = createContext(null);
 export function AppProvider({ children }) {
   const [state, reactDispatch] = useReducer(reducer, INITIAL_STATE);
   const [dbLoading, setDbLoading] = useState(DB_ENABLED);
+  const [dbError, setDbError]     = useState(null);
   const stateRef = useRef(state);
 
   // Mantener ref sincronizado para que syncToDb siempre vea el último estado
@@ -420,10 +421,16 @@ export function AppProvider({ children }) {
   // Cargar datos desde Supabase al montar (solo si DB está habilitada)
   useEffect(() => {
     if (!DB_ENABLED) { setDbLoading(false); return; }
-    loadAllData().then(data => {
-      if (data) reactDispatch({ type: 'LOAD_FROM_DB', payload: data });
-      setDbLoading(false);
-    });
+    loadAllData()
+      .then(data => {
+        if (data) reactDispatch({ type: 'LOAD_FROM_DB', payload: data });
+        setDbLoading(false);
+      })
+      .catch(err => {
+        console.error('DB load failed:', err);
+        setDbError(err.message);
+        setDbLoading(false);
+      });
   }, []);
 
   // dispatch optimista: actualiza UI inmediatamente, sincroniza a DB en background
@@ -463,7 +470,7 @@ export function AppProvider({ children }) {
     return perms.includes(key);
   }, [state.currentUser]);
 
-  const value = { state, dispatch, toast, cashBalance, lowStockProducts, todaySales, hasPermission, dbLoading };
+  const value = { state, dispatch, toast, cashBalance, lowStockProducts, todaySales, hasPermission, dbLoading, dbError };
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
 

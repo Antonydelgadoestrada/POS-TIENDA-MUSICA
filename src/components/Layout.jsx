@@ -22,7 +22,7 @@ const MENU_ITEMS = [
 ];
 
 export default function Layout({ children }) {
-  const { state, dispatch, cashBalance, lowStockProducts, hasPermission } = useApp();
+  const { state, dispatch, cashBalance, lowStockProducts, hasPermission, dbError } = useApp();
   const { currentUser, activeModule, currentCashRegister, companyConfig } = state;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -132,6 +132,15 @@ export default function Layout({ children }) {
 
       {/* ── MAIN AREA ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
+
+        {/* Banner error de BD */}
+        {dbError && (
+          <div className="bg-amber-500/20 border-b border-amber-500/30 px-4 py-1.5 text-xs text-amber-400 flex items-center gap-2 shrink-0">
+            <AlertTriangle size={12} className="shrink-0"/>
+            <span className="font-semibold">Modo sin conexión</span>
+            <span className="opacity-60 hidden sm:inline">— los datos no se guardarán al recargar. Ejecuta el SQL schema en Supabase.</span>
+          </div>
+        )}
 
         {/* HEADER */}
         <header className="h-14 bg-slate-800 border-b border-slate-700 flex items-center px-4 gap-3 shrink-0">
