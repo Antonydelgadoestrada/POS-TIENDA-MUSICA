@@ -5,7 +5,7 @@ import {
   ChevronDown, Tag,
 } from 'lucide-react';
 
-const fmt = (n) => `S/ ${Number(n || 0).toFixed(2)}`;
+import { fmt } from '../lib/format';
 
 export default function POS() {
   const { state, dispatch, toast } = useApp();
@@ -55,9 +55,11 @@ export default function POS() {
   // ── totals ───────────────────────────────────────────────────────────────
   const subtotal       = useMemo(() => cart.reduce((s,i) => s + i.price * i.qty, 0), [cart]);
   const discountAmount = useMemo(() => discountType === 'percent' ? subtotal * discount / 100 : Math.min(discount, subtotal), [subtotal, discount, discountType]);
-  const taxable        = subtotal - discountAmount;
-  const taxAmt         = taxable * companyConfig.taxRate / 100;
-  const total          = taxable + taxAmt;
+  const { taxAmt, total } = useMemo(() => {
+    const taxable = subtotal - discountAmount;
+    const taxAmt  = taxable * companyConfig.taxRate / 100;
+    return { taxAmt, total: taxable + taxAmt };
+  }, [subtotal, discountAmount, companyConfig.taxRate]);
 
   // ── payments ─────────────────────────────────────────────────────────────
   const isCash     = (m) => m === 'Efectivo';

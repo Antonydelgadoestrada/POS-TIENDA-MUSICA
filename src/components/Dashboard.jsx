@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useApp } from '../context/AppContext';
+import { fmt, fmtShort } from '../lib/format';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
@@ -39,8 +40,6 @@ function KPICard({ title, value, sub, icon: Icon, color = 'violet', trend }) {
   );
 }
 
-const fmt = (n) => `S/ ${Number(n).toFixed(2)}`;
-const fmtShort = (n) => n >= 1000 ? `S/ ${(n/1000).toFixed(1)}k` : `S/ ${Number(n).toFixed(0)}`;
 
 export default function Dashboard() {
   const { state, todaySales, lowStockProducts, cashBalance } = useApp();
@@ -66,40 +65,42 @@ export default function Dashboard() {
       .reduce((s, v) => s + v.total, 0);
   }, [sales]);
 
-  // 7-day bar chart
-  const chartData7 = useMemo(() => {
-    const days = [];
-    const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const dayStr = d.toDateString();
-      const prev = prevSales.find(s => new Date(s.date).toDateString() === dayStr);
-      const todaySalesForDay = i === 0 ? todaySales : [];
-      const total = prev ? prev.total : (i === 0 ? todayTotal : 0);
-      days.push({ name: dayNames[d.getDay()], total: parseFloat(total.toFixed(2)) });
-    }
-    return days;
-  }, [prevSales, todaySales, todayTotal]);
+  // Pre-index prevSales + real sales by date string — O(1) lookup instead of O(n) find per day
+  const salesByDate = useMemo(() => {
+    const map = new Map();
+    prevSales.forEach(s => map.set(new Date(s.date).toDateString(), s.total));
+    // Real sales also contribute to the map
+    sales.forEach(s => {
+      const key = new Date(s.createdAt).toDateString();
+      if (s.status !== 'ANULADA') map.set(key, (map.get(key) || 0) + s.total);
+    });
+    return map;
+  }, [prevSales, sales]);
 
-  // payment methods pie
+  const chartData7 = useMemo(() => {
+    const dayNames = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const now = new Date();
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(now); d.setDate(d.getDate() - (6 - i));
+      const total = salesByDate.get(d.toDateString()) ?? 0;
+      return { name: dayNames[d.getDay()], total: parseFloat(total.toFixed(2)) };
+    });
+  }, [salesByDate]);
+
   const paymentData = useMemo(() => {
     const map = {};
     todaySales.forEach(s => s.payments.forEach(p => { map[p.method] = (map[p.method]||0) + p.amount; }));
     return Object.entries(map).map(([name, value]) => ({ name, value: parseFloat(value.toFixed(2)) }));
   }, [todaySales]);
 
-  // monthly trend (last 15 days)
   const trendData = useMemo(() => {
-    const days = [];
-    for (let i = 14; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const dayStr = d.toDateString();
-      const prev = prevSales.find(s => new Date(s.date).toDateString() === dayStr);
-      const total = prev ? prev.total : (i === 0 ? todayTotal : 0);
-      days.push({ name: `${d.getDate()}/${d.getMonth()+1}`, total: parseFloat(total.toFixed(2)) });
-    }
-    return days;
-  }, [prevSales, todayTotal]);
+    const now = new Date();
+    return Array.from({ length: 15 }, (_, i) => {
+      const d = new Date(now); d.setDate(d.getDate() - (14 - i));
+      const total = salesByDate.get(d.toDateString()) ?? 0;
+      return { name: `${d.getDate()}/${d.getMonth()+1}`, total: parseFloat(total.toFixed(2)) };
+    });
+  }, [salesByDate]);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;

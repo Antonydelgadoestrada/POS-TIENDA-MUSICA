@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { Plus, Trash2, X, PackagePlus, PackageMinus, History, Search } from 'lucide-react';
 
-const fmt = n => `S/ ${Number(n||0).toFixed(2)}`;
+import { fmt } from '../lib/format';
 const OUT_REASONS = ['Devolución a proveedor','Préstamo','Muestra','Deterioro','Pérdida','Otro'];
 
 // ── Combobox de búsqueda de productos ────────────────────────────────────────

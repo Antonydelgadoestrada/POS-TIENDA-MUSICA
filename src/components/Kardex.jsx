@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Search, ArrowUpCircle, ArrowDownCircle, SlidersHorizontal } from 'lucide-react';
 
-const fmt = n => `S/ ${Number(n||0).toFixed(2)}`;
+import { fmt } from '../lib/format';
 
 export default function Kardex() {
   const { state } = useApp();

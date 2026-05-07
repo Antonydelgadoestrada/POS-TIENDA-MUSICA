@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Wallet, Plus, Minus, Lock, Unlock, History, X } from 'lucide-react';
 
-const fmt = n => `S/ ${Number(n||0).toFixed(2)}`;
+import { fmt } from '../lib/format';
 
 function OpenCashModal({ onClose }) {
   const { dispatch, toast, state } = useApp();

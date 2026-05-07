@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { MODULE_PERMISSION } from '../data/permissions';
 import {
@@ -27,14 +27,12 @@ export default function Layout({ children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const visibleMenus = MENU_ITEMS.filter(m => {
+  const visibleMenus   = useMemo(() => MENU_ITEMS.filter(m => {
     const perm = MODULE_PERMISSION[m.id];
     return perm ? hasPermission(perm) : true;
-  });
-
-  // Primeros 4 ítems para bottom nav móvil, el resto en "Más"
-  const bottomNavItems = visibleMenus.slice(0, 4);
-  const moreItems = visibleMenus.slice(4);
+  }), [hasPermission]);
+  const bottomNavItems = useMemo(() => visibleMenus.slice(0, 4), [visibleMenus]);
+  const moreItems      = useMemo(() => visibleMenus.slice(4),    [visibleMenus]);
 
   // Cerrar drawer al cambiar de módulo
   useEffect(() => { setDrawerOpen(false); setMoreOpen(false); }, [activeModule]);
@@ -45,16 +43,6 @@ export default function Layout({ children }) {
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
-
-  // Auto-dismiss toasts
-  useEffect(() => {
-    if (state.toasts.length > 0) {
-      const timer = setTimeout(() => {
-        dispatch({ type: 'REMOVE_TOAST', payload: state.toasts[0].id });
-      }, 3500);
-      return () => clearTimeout(timer);
-    }
-  }, [state.toasts]);
 
   const roleColor = { ADMIN:'bg-violet-600', CAJERO:'bg-amber-500', AUXILIAR:'bg-emerald-500' };
 

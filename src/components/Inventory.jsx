@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 import { Search, SlidersHorizontal, X, Check } from 'lucide-react';
 
-const fmt = n => `S/ ${Number(n||0).toFixed(2)}`;
+import { fmt } from '../lib/format';
 
 const REASONS = ['Conteo físico','Corrección de error','Merma','Donación','Otro'];
 

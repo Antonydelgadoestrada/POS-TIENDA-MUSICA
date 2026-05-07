@@ -5,7 +5,7 @@ import {
   ShoppingBag, CheckCircle, AlertTriangle, X, Check, Minus, Plus,
 } from 'lucide-react';
 
-const fmt = n => `S/ ${Number(n||0).toFixed(2)}`;
+import { fmt } from '../lib/format';
 
 // ── Colores por estado ────────────────────────────────────────────────────────
 const STATUS_STYLE = {

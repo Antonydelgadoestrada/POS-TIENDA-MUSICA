@@ -5,7 +5,7 @@ import {
   X, Check, Upload, Download, Tag, Package, Wrench, Layers,
 } from 'lucide-react';
 
-const fmt = n => `S/ ${Number(n||0).toFixed(2)}`;
+import { fmt } from '../lib/format';
 
 // ── Configuración de tipos ───────────────────────────────────────────────────
 const PRODUCT_TYPES = {
